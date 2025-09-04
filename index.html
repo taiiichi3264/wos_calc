@@ -11,7 +11,7 @@
         background-color: #f0f2f5;
         color: #333;
         margin: 0;
-        padding: 20px;
+        padding: 15px;
       }
       .container {
         max-width: 400px;
@@ -21,14 +21,13 @@
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         overflow: hidden;
       }
-
       .tabs {
         display: flex;
         background-color: #e9ecef;
       }
       .tab-button {
         width: 50%;
-        padding: 15px;
+        padding: 12px;
         border: none;
         background-color: transparent;
         font-size: 1em;
@@ -42,23 +41,21 @@
         color: #007bff;
         border-bottom: 3px solid #007bff;
       }
-
       .tab-content {
-        padding: 25px;
+        padding: 20px;
       }
       .hidden {
         display: none;
       }
-
       h1 {
         text-align: center;
         color: #1c1e21;
         margin-top: 0;
-        margin-bottom: 20px;
-        font-size: 1.5em;
+        margin-bottom: 15px;
+        font-size: 1.4em;
       }
       .input-group {
-        margin-bottom: 15px;
+        margin-bottom: 12px;
       }
       label {
         display: block;
@@ -78,7 +75,6 @@
         border-color: #007bff;
         box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
       }
-
       .time-input-container {
         display: flex;
         gap: 10px;
@@ -92,11 +88,10 @@
         font-size: 0.9em;
         margin-bottom: 3px;
       }
-
       .button-group {
         display: flex;
         gap: 10px;
-        margin-top: 20px;
+        margin-top: 15px;
       }
       button {
         width: 100%;
@@ -122,7 +117,7 @@
         background-color: #5a6268;
       }
       #result {
-        margin-top: 20px;
+        margin-top: 15px;
         background-color: #e9ecef;
         padding: 15px;
         border-radius: 6px;
@@ -134,8 +129,6 @@
         font-weight: bold;
         color: #1c1e21;
       }
-
-      /* --- 履歴タブのスタイル --- */
       .history-header {
         display: flex;
         justify-content: space-between;
@@ -161,39 +154,37 @@
         overflow-x: auto;
         -webkit-overflow-scrolling: touch;
       }
-      #history-table {
+      .history-table {
         width: 100%;
         border-collapse: collapse;
       }
-      #history-table th,
-      #history-table td {
+      .history-table th,
+      .history-table td {
         padding: 10px 8px;
         border-bottom: 1px solid #ddd;
         text-align: center;
         white-space: nowrap;
       }
-      #history-table th {
+      .history-table th {
         background-color: #f8f9fa;
         font-weight: 600;
         font-size: 0.9em;
       }
-      #history-table td {
+      .history-table td {
         font-size: 0.9em;
       }
-      #history-table th:nth-child(1),
-      #history-table td:nth-child(1) {
+      .history-table th:first-child,
+      .history-table td:first-child {
         text-align: right;
         padding-right: 10px;
       }
-      #history-table th:nth-child(3),
-      #history-table td:nth-child(3) {
+      .history-table th:last-child,
+      .history-table td:last-child {
         text-align: right;
         padding-right: 10px;
       }
-
-      /* --- 修正点 (1): 直近の履歴エリアのスタイル --- */
       .recent-history-container {
-        margin-top: 20px;
+        margin-top: 15px;
         padding-top: 15px;
         border-top: 1px solid #eee;
       }
@@ -202,25 +193,6 @@
         font-size: 1em;
         font-weight: 600;
         color: #333;
-      }
-      #recent-history-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        font-size: 0.9em;
-      }
-      #recent-history-list li {
-        display: flex;
-        justify-content: space-between;
-        padding: 6px 2px;
-        border-bottom: 1px solid #f0f2f5;
-      }
-      #recent-history-list li .result-value {
-        font-weight: 600;
-      }
-      #recent-history-list li .details {
-        color: #6c757d;
-        font-size: 0.9em;
       }
     </style>
   </head>
@@ -249,16 +221,16 @@
         <label>所用時間</label>
         <div class="time-input-container">
           <div class="time-input-group">
-            <label for="days">日</label>
-            <input type="number" id="days" placeholder="1" />
+            <label for="days">日</label
+            ><input type="number" id="days" placeholder="1" />
           </div>
           <div class="time-input-group">
-            <label for="hours">時間</label>
-            <input type="number" id="hours" placeholder="10" />
+            <label for="hours">時間</label
+            ><input type="number" id="hours" placeholder="10" />
           </div>
           <div class="time-input-group">
-            <label for="minutes">分</label>
-            <input type="number" id="minutes" placeholder="30" />
+            <label for="minutes">分</label
+            ><input type="number" id="minutes" placeholder="30" />
           </div>
         </div>
 
@@ -270,7 +242,18 @@
 
         <div class="recent-history-container">
           <h3>直近の履歴</h3>
-          <ul id="recent-history-list"></ul>
+          <div class="table-container">
+            <table class="history-table" id="recent-history-table">
+              <thead>
+                <tr>
+                  <th>総力</th>
+                  <th>時間</th>
+                  <th>/ 1時間</th>
+                </tr>
+              </thead>
+              <tbody id="recent-history-table-body"></tbody>
+            </table>
+          </div>
         </div>
       </div>
 
@@ -282,7 +265,7 @@
           </button>
         </div>
         <div class="table-container">
-          <table id="history-table">
+          <table class="history-table" id="full-history-table">
             <thead>
               <tr>
                 <th>総力</th>
@@ -290,19 +273,30 @@
                 <th>/ 1時間</th>
               </tr>
             </thead>
-            <tbody id="history-table-body"></tbody>
+            <tbody id="full-history-table-body"></tbody>
           </table>
         </div>
       </div>
     </div>
 
     <script>
-      // --- 修正点 (4): 起動時と画面リサイズ時に履歴表示を更新 ---
       window.onload = function () {
         updateHistoryViews();
         showTab("calc");
       };
       window.addEventListener("resize", updateHistoryViews);
+
+      /**
+       * --- 修正点 (3): 小数点表示を整形する共通関数 ---
+       * @param {string} numStr - ".toFixed(1)"で整形済みの数値文字列
+       * @returns {string} - 整数部分に桁区切りを追加した文字列
+       */
+      function formatDecimalString(numStr) {
+        if (!numStr) return "";
+        const parts = numStr.split(".");
+        const integerPart = parseInt(parts[0], 10).toLocaleString();
+        return `${integerPart}.${parts[1]}`;
+      }
 
       function showTab(tabName) {
         document.getElementById("content-calc").classList.add("hidden");
@@ -331,8 +325,11 @@
           return;
         }
         const powerPerHour = power / totalHours;
-        resultElement.textContent = `1時間あたりの総力: ${powerPerHour.toFixed(
-          2
+
+        // --- 修正点 (1): toFixed(1)に変更 ---
+        const resultString = powerPerHour.toFixed(1);
+        resultElement.textContent = `1時間あたりの総力: ${formatDecimalString(
+          resultString
         )}`;
 
         saveHistory({
@@ -340,7 +337,7 @@
           days: days,
           hours: hours,
           minutes: minutes,
-          result: powerPerHour.toFixed(2),
+          result: resultString,
         });
       }
 
@@ -358,86 +355,76 @@
         history.unshift(entry);
         if (history.length > 20) history.pop();
         localStorage.setItem("calcHistory", JSON.stringify(history));
-        updateHistoryViews(); // 変更: 両方の履歴表示を更新
+        updateHistoryViews();
       }
 
-      // --- 修正点 (5): 履歴表示をまとめて更新する関数 ---
       function updateHistoryViews() {
         const history = JSON.parse(localStorage.getItem("calcHistory")) || [];
         populateFullHistoryTable(history);
-        populateRecentHistoryList(history);
+        populateRecentHistoryTable(history);
       }
 
       function populateFullHistoryTable(history) {
-        const tableBody = document.getElementById("history-table-body");
+        const tableBody = document.getElementById("full-history-table-body");
         tableBody.innerHTML = "";
         if (history.length === 0) {
-          const tr = document.createElement("tr");
-          const td = document.createElement("td");
-          td.colSpan = 3;
-          td.textContent = "履歴はありません";
-          td.style.textAlign = "center";
-          tr.appendChild(td);
-          tableBody.appendChild(tr);
+          tableBody.innerHTML =
+            '<tr><td colspan="3" style="text-align:center;">履歴はありません</td></tr>';
           return;
         }
+        let rowsHtml = "";
         history.forEach((item) => {
-          const tr = document.createElement("tr");
-          tr.innerHTML = `
-                <td>${item.power.toLocaleString()}</td>
-                <td>${item.days}日 ${item.hours}時間 ${item.minutes}分</td>
-                <td>${parseFloat(item.result).toLocaleString()}</td>
-            `;
-          tableBody.appendChild(tr);
+          // --- 修正点 (2): 整形関数を使用 ---
+          rowsHtml += `
+                <tr>
+                    <td>${item.power.toLocaleString()}</td>
+                    <td>${item.days}日 ${item.hours}時間 ${item.minutes}分</td>
+                    <td>${formatDecimalString(item.result)}</td>
+                </tr>`;
         });
+        tableBody.innerHTML = rowsHtml;
       }
 
-      // --- 修正点 (6): 直近の履歴を動的に表示する関数 ---
-      function populateRecentHistoryList(history) {
-        const listElement = document.getElementById("recent-history-list");
-        listElement.innerHTML = "";
+      function populateRecentHistoryTable(history) {
+        const tableElement = document.getElementById("recent-history-table");
+        const tableBody = document.getElementById("recent-history-table-body");
+        tableBody.innerHTML = "";
+
         if (history.length === 0) {
-          listElement.innerHTML = "<li>計算履歴はありません</li>";
+          tableElement.classList.add("hidden");
           return;
         }
+        tableElement.classList.remove("hidden");
 
-        // 1件あたりの高さを計測
-        const tempLi = document.createElement("li");
-        tempLi.style.visibility = "hidden";
-        tempLi.innerHTML = "<span>temp</span>";
-        listElement.appendChild(tempLi);
-        const itemHeight = tempLi.offsetHeight > 0 ? tempLi.offsetHeight : 28; // 0ならデフォルト値
-        listElement.removeChild(tempLi);
+        const tempTr = document.createElement("tr");
+        tempTr.style.visibility = "hidden";
+        tempTr.innerHTML = "<td>temp</td><td>temp</td><td>temp</td>";
+        tableBody.appendChild(tempTr);
+        const itemHeight = tempTr.offsetHeight > 0 ? tempTr.offsetHeight : 39;
+        tableBody.removeChild(tempTr);
 
-        // 表示可能な件数を計算
-        const containerTop = listElement.getBoundingClientRect().top;
-        const availableHeight = window.innerHeight - containerTop - 20; // 20pxの余白
+        const containerTop = tableElement.getBoundingClientRect().top;
+        const availableHeight = window.innerHeight - containerTop - 20;
         const maxItems = Math.floor(availableHeight / itemHeight);
 
         const itemsToShow = history.slice(0, maxItems);
 
+        let rowsHtml = "";
         itemsToShow.forEach((item) => {
-          const li = document.createElement("li");
-          li.innerHTML = `
-                <div>
-                    <span class="result-value">${parseFloat(
-                      item.result
-                    ).toLocaleString()}</span>
-                    <span class="details">/ 1h</span>
-                </div>
-                <div class="details">
-                    (総力 ${item.power.toLocaleString()} / ${item.days}d ${
-            item.hours
-          }h ${item.minutes}m)
-                </div>
-            `;
-          listElement.appendChild(li);
+          // --- 修正点 (2): 整形関数を使用 ---
+          rowsHtml += `
+                <tr>
+                    <td>${item.power.toLocaleString()}</td>
+                    <td>${item.days}日 ${item.hours}h ${item.minutes}m</td>
+                    <td>${formatDecimalString(item.result)}</td>
+                </tr>`;
         });
+        tableBody.innerHTML = rowsHtml;
       }
 
       function clearHistory() {
         localStorage.removeItem("calcHistory");
-        updateHistoryViews(); // 変更: 両方の履歴表示を更新
+        updateHistoryViews();
       }
     </script>
   </body>
