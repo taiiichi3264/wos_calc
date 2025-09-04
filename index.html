@@ -1,403 +1,256 @@
 <!DOCTYPE html>
 <html lang="ja">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>1時間あたりの総力計算</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+
     <style>
-      /* --- 修正点 (1): 画面全体のスクロールを無効化 --- */
-      html,
-      body {
-        height: 100%;
-        margin: 0;
-        padding: 0;
-        overflow: hidden; /* ページ全体のスクロールを禁止 */
-      }
-      body {
-        padding: 15px;
-        box-sizing: border-box; /* paddingを含めて高さを100%に */
-      }
-      /* --- 修正点 (2): アプリの高さを画面いっぱいに固定 --- */
-      .container {
-        max-width: 400px;
-        margin: 0 auto;
-        background-color: #ffffff;
-        border-radius: 12px;
-        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        overflow: hidden;
-        height: 100%; /* 画面の高さに合わせる */
-        display: flex; /* Flexboxレイアウトに変更 */
-        flex-direction: column; /* 縦方向に要素を並べる */
-      }
-      .tabs {
-        flex-shrink: 0; /* タブは縮まない */
-        display: flex;
-        border-bottom: 1px solid #ddd;
-        background-color: #f0f2f5;
-        padding: 0 5px;
-      }
-      .tab-button {
-        width: 50%;
-        padding: 12px;
-        border: 1px solid transparent;
-        border-bottom: none;
-        border-radius: 6px 6px 0 0;
-        background-color: #f0f2f5;
-        color: #6c757d;
-        font-size: 1em;
-        font-weight: 600;
-        text-align: center;
-        cursor: pointer;
-        margin-bottom: -1px;
-        transition: background-color 0.2s, color 0.2s;
-      }
-      .tab-button.active {
-        color: #007bff;
-        background-color: #ffffff;
-        border-color: #ddd #ddd #ffffff;
-      }
-      /* --- 修正点 (3): コンテンツエリアが残りの高さいっぱいを占めるように --- */
-      .tab-content {
-        padding: 20px;
-        flex-grow: 1; /* 残りのスペースをすべて使用 */
-        display: flex;
-        flex-direction: column;
-        min-height: 0; /* Flexbox利用時のオーバーフロー防止 */
-      }
-      .hidden {
-        display: none;
-      }
-      h1 {
-        text-align: center;
-        color: #1c1e21;
-        margin-top: 0;
-        margin-bottom: 15px;
-        font-size: 1.4em;
-      }
-      .input-group {
-        margin-bottom: 12px;
-      }
-      label {
-        display: block;
-        margin-bottom: 5px;
-        font-weight: 600;
-      }
-      input[type="number"] {
-        width: 100%;
-        padding: 10px;
-        border: 1px solid #ddd;
-        border-radius: 6px;
-        box-sizing: border-box;
-        font-size: 1em;
-      }
-      input[type="number"]:focus {
-        outline: none;
-        border-color: #007bff;
-        box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
-      }
-      .time-input-container {
-        display: flex;
-        gap: 10px;
-        align-items: flex-end;
-      }
-      .time-input-group {
-        flex: 1;
-        min-width: 0;
-      }
-      .time-input-group label {
-        font-size: 0.9em;
-        margin-bottom: 3px;
-      }
-      .button-group {
-        display: flex;
-        gap: 10px;
-        margin-top: 15px;
-      }
-      button {
-        width: 100%;
-        padding: 12px;
-        color: white;
-        border: none;
-        border-radius: 6px;
-        font-size: 1.1em;
-        font-weight: 600;
-        cursor: pointer;
-        transition: background-color 0.2s;
-      }
-      .calc-button {
-        background-color: #007bff;
-      }
-      .reset-button {
-        background-color: #6c757d;
-      }
-      #result {
-        margin-top: 15px;
-        background-color: #e9ecef;
-        padding: 15px;
-        border-radius: 6px;
-        text-align: center;
-      }
-      #result p {
-        margin: 0;
-        font-size: 1.2em;
-        font-weight: bold;
-        color: #1c1e21;
-      }
-
-      .history-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 15px;
-        flex-shrink: 0;
-      }
-      .history-header h1 {
-        margin: 0;
-        font-size: 1.3em;
-        text-align: left;
-        white-space: nowrap;
-      }
-      .clear-history {
-        font-size: 0.8em;
-        color: #007bff;
-        cursor: pointer;
-        border: none;
-        background: none;
-        padding: 5px;
-        flex-shrink: 0;
-      }
-
-      /* --- 修正点 (4): テーブルコンテナがスクロールを担当 --- */
-      .table-container {
-        overflow: auto; /* 縦横のスクロールを必要に応じて許可 */
-        -webkit-overflow-scrolling: touch;
-        flex-grow: 1; /* 残りのスペースを埋める */
-        min-height: 0; /* Flexbox利用時のオーバーフロー防止 */
-      }
-      .history-table {
-        width: 100%;
-        border-collapse: collapse;
-      }
-      .history-table th,
-      .history-table td {
-        padding: 10px 8px;
-        border-bottom: 1px solid #ddd;
-        text-align: center;
-        white-space: nowrap;
-      }
-      .history-table th {
-        background-color: #f8f9fa;
-        font-weight: 600;
-        font-size: 0.9em;
-        position: sticky; /* スクロール時にヘッダーを固定 */
-        top: 0;
-      }
-      .history-table td {
-        font-size: 0.9em;
-      }
-      .history-table th:first-child,
-      .history-table td:first-child {
-        text-align: right;
-        padding-right: 10px;
-      }
-      .history-table th:last-child,
-      .history-table td:last-child {
-        text-align: right;
-        padding-right: 10px;
-      }
-
-      /* --- 修正点 (5): 計算機タブ内の履歴エリアもFlexboxで高さを制御 --- */
-      .recent-history-container {
-        margin-top: 15px;
-        padding-top: 15px;
-        border-top: 1px solid #eee;
-        flex-grow: 1; /* 残りのスペースを埋める */
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-      }
-      .recent-history-container h3 {
-        margin: 0 0 10px 0;
-        font-size: 1em;
-        font-weight: 600;
-        color: #333;
-        flex-shrink: 0;
-      }
+        html, body {
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            padding: 10px; /* 修正: 画面全体の余白をさらに縮小 */
+            box-sizing: border-box;
+        }
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+        .tabs {
+            flex-shrink: 0;
+            display: flex;
+            border-bottom: 1px solid #ddd;
+            background-color: #f0f2f5;
+            padding: 0 5px;
+        }
+        .tab-button {
+            width: 50%; padding: 10px; /* 修正: タブの余白を縮小 */ border: 1px solid transparent; border-bottom: none; border-radius: 6px 6px 0 0; background-color: #f0f2f5; color: #6c757d; font-size: 1em; font-weight: 700; text-align: center; cursor: pointer; margin-bottom: -1px; transition: background-color 0.2s, color 0.2s;
+        }
+        .tab-button.active {
+            color: #007bff;
+            background-color: #ffffff;
+            border-color: #ddd #ddd #ffffff;
+        }
+        .tab-content {
+            padding: 15px; /* 修正: コンテンツ内の余白を縮小 */
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .hidden { display: none; }
+        h1 { text-align: center; color: #1c1e21; margin-top: 0; margin-bottom: 12px; /* 修正: 余白縮小 */ font-size: 1.3em; }
+        .input-group { margin-bottom: 10px; /* 修正: 余白縮小 */ }
+        label { display: block; margin-bottom: 4px; /* 修正: 余白縮小 */ font-weight: 700; font-size: 0.9em; }
+        input[type="number"] { width: 100%; padding: 8px; /* 修正: 余白縮小 */ border: 1px solid #ddd; border-radius: 6px; box-sizing: border-box; font-size: 1em; font-family: 'Noto Sans JP', sans-serif; }
+        input[type="number"]:focus { outline: none; border-color: #007bff; box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25); }
+        .time-input-container {
+            display: flex; gap: 8px; /* 修正: 隙間を縮小 */ align-items: flex-end;
+        }
+        .time-input-group {
+            flex: 1; min-width: 0;
+        }
+        .time-input-group label {
+            font-size: 0.85em; margin-bottom: 3px; font-weight: 400;
+        }
+        .button-group { display: flex; gap: 10px; margin-top: 12px; /* 修正: 余白縮小 */ }
+        button { width: 100%; padding: 10px; /* 修正: 余白縮小 */ color: white; border: none; border-radius: 6px; font-size: 1em; /* 修正: 文字サイズ調整 */ font-weight: 700; cursor: pointer; transition: background-color 0.2s; font-family: 'Noto Sans JP', sans-serif; }
+        .calc-button { background-color: #007bff; }
+        .reset-button { background-color: #6c757d; }
+        #result { margin-top: 12px; /* 修正: 余白縮小 */ background-color: #e9ecef; padding: 12px; /* 修正: 余白縮小 */ border-radius: 6px; text-align: center; }
+        #result p { margin: 0; font-size: 1.1em; /* 修正: 文字サイズ調整 */ font-weight: 700; color: #1c1e21; }
+        .history-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; /* 修正: 余白縮小 */ flex-shrink: 0; }
+        .history-header h1 { margin: 0; font-size: 1.2em; /* 修正: 文字サイズ調整 */ text-align: left; white-space: nowrap; }
+        .clear-history { font-size: 0.8em; color: #007bff; cursor: pointer; border: none; background: none; padding: 5px; flex-shrink: 0; }
+        .table-container {
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            flex-grow: 1;
+            min-height: 0;
+        }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .history-table th, .history-table td {
+            padding: 8px 6px; /* 修正: セルの余白を縮小 */
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .history-table th {
+            background-color: #f8f9fa;
+            font-weight: 700;
+            font-size: 0.85em; /* 修正: 文字サイズ調整 */
+            position: sticky;
+            top: 0;
+        }
+        .history-table td { font-size: 0.85em; /* 修正: 文字サイズ調整 */ }
+        .history-table th:first-child, .history-table td:first-child { text-align: right; padding-right: 8px;}
+        .history-table th:last-child, .history-table td:last-child { text-align: right; padding-right: 8px;}
+        .recent-history-container {
+            margin-top: 12px; /* 修正: 余白縮小 */
+            padding-top: 12px; /* 修正: 余白縮小 */
+            border-top: 1px solid #eee;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+        .recent-history-container h3 {
+            margin: 0 0 8px; /* 修正: 余白縮小 */
+            font-size: 1em;
+            font-weight: 700;
+            color: #333;
+            flex-shrink: 0;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <div class="tabs">
-        <button id="tab-calc" class="tab-button" onclick="showTab('calc')">
-          計算機
-        </button>
-        <button
-          id="tab-history"
-          class="tab-button"
-          onclick="showTab('history')"
-        >
-          履歴
-        </button>
-      </div>
-
-      <div id="content-calc" class="tab-content">
-        <div>
-          <h1>1時間あたりの総力計算</h1>
-          <div class="input-group">
-            <label for="power">獲得総力</label>
-            <input type="number" id="power" placeholder="例: 10000" />
-          </div>
-          <label>所用時間</label>
-          <div class="time-input-container">
-            <div class="time-input-group">
-              <label for="days">日</label
-              ><input type="number" id="days" placeholder="1" />
+        <div class="tabs">
+            <button id="tab-calc" class="tab-button" onclick="showTab('calc')">計算機</button>
+            <button id="tab-history" class="tab-button" onclick="showTab('history')">履歴</button>
+        </div>
+        <div id="content-calc" class="tab-content">
+            <div>
+                <h1>1時間あたりの総力計算</h1>
+                <div class="input-group">
+                    <label for="power">獲得総力</label>
+                    <input type="number" id="power" placeholder="例: 10000">
+                </div>
+                <label>所用時間</label>
+                <div class="time-input-container">
+                    <div class="time-input-group"><label for="days">日</label><input type="number" id="days" placeholder="1"></div>
+                    <div class="time-input-group"><label for="hours">時間</label><input type="number" id="hours" placeholder="10"></div>
+                    <div class="time-input-group"><label for="minutes">分</label><input type="number" id="minutes" placeholder="30"></div>
+                </div>
+                <div class="button-group">
+                    <button class="reset-button" onclick="resetInputs()">リセット</button>
+                    <button class="calc-button" onclick="calculate()">計算する</button>
+                </div>
+                <div id="result"><p>ここに結果が表示されます</p></div>
             </div>
-            <div class="time-input-group">
-              <label for="hours">時間</label
-              ><input type="number" id="hours" placeholder="10" />
+            <div class="recent-history-container">
+                <h3>直近の履歴</h3>
+                <div class="table-container">
+                    <table class="history-table" id="recent-history-table">
+                        <thead>
+                            <tr><th>総力</th><th>時間</th><th>/ 1時間</th></tr>
+                        </thead>
+                        <tbody id="recent-history-table-body"></tbody>
+                    </table>
+                </div>
             </div>
-            <div class="time-input-group">
-              <label for="minutes">分</label
-              ><input type="number" id="minutes" placeholder="30" />
+        </div>
+        <div id="content-history" class="tab-content hidden">
+            <div class="history-header">
+                <h1>計算履歴</h1>
+                <button class="clear-history" onclick="clearHistory()">履歴を消去</button>
             </div>
-          </div>
-          <div class="button-group">
-            <button class="reset-button" onclick="resetInputs()">
-              リセット
-            </button>
-            <button class="calc-button" onclick="calculate()">計算する</button>
-          </div>
-          <div id="result"><p>ここに結果が表示されます</p></div>
+            <div class="table-container">
+                <table class="history-table" id="full-history-table">
+                    <thead>
+                        <tr><th>総力</th><th>時間</th><th>/ 1時間</th></tr>
+                    </thead>
+                    <tbody id="full-history-table-body"></tbody>
+                </table>
+            </div>
         </div>
-        <div class="recent-history-container">
-          <h3>直近の履歴</h3>
-          <div class="table-container">
-            <table class="history-table" id="recent-history-table">
-              <thead>
-                <tr>
-                  <th>総力</th>
-                  <th>時間</th>
-                  <th>/ 1時間</th>
-                </tr>
-              </thead>
-              <tbody id="recent-history-table-body"></tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <div id="content-history" class="tab-content">
-        <div class="history-header">
-          <h1>計算履歴</h1>
-          <button class="clear-history" onclick="clearHistory()">
-            履歴を消去
-          </button>
-        </div>
-        <div class="table-container">
-          <table class="history-table" id="full-history-table">
-            <thead>
-              <tr>
-                <th>総力</th>
-                <th>時間</th>
-                <th>/ 1時間</th>
-              </tr>
-            </thead>
-            <tbody id="full-history-table-body"></tbody>
-          </table>
-        </div>
-      </div>
     </div>
-
-    <script>
-      window.onload = function () {
+<script>
+    // JavaScript部分は変更ありません
+    window.onload = function() {
         updateHistoryViews();
-        showTab("calc");
-      };
-      // 修正: リサイズイベントは不要になったため削除
+        showTab('calc');
+    };
 
-      function formatDecimalString(numStr) {
-        if (!numStr) return "";
-        const parts = numStr.split(".");
+    function formatDecimalString(numStr) {
+        if (!numStr) return '';
+        const parts = numStr.split('.');
         const integerPart = parseInt(parts[0], 10).toLocaleString();
         return `${integerPart}.${parts[1]}`;
-      }
+    }
 
-      function showTab(tabName) {
-        document.getElementById("content-calc").classList.add("hidden");
-        document.getElementById("content-history").classList.add("hidden");
-        document.getElementById("tab-calc").classList.remove("active");
-        document.getElementById("tab-history").classList.remove("active");
-        document
-          .getElementById("content-" + tabName)
-          .classList.remove("hidden");
-        document.getElementById("tab-" + tabName).classList.add("active");
-      }
+    function showTab(tabName) {
+        document.getElementById('content-calc').classList.add('hidden');
+        document.getElementById('content-history').classList.add('hidden');
+        document.getElementById('tab-calc').classList.remove('active');
+        document.getElementById('tab-history').classList.remove('active');
+        document.getElementById('content-' + tabName).classList.remove('hidden');
+        document.getElementById('tab-' + tabName).classList.add('active');
+    }
 
-      function calculate() {
-        const power = parseFloat(document.getElementById("power").value) || 0;
-        const days = parseFloat(document.getElementById("days").value) || 0;
-        const hours = parseFloat(document.getElementById("hours").value) || 0;
-        const minutes =
-          parseFloat(document.getElementById("minutes").value) || 0;
-        const totalHours = days * 24 + hours + minutes / 60;
-        const resultElement = document
-          .getElementById("result")
-          .querySelector("p");
-
+    function calculate() {
+        const power = parseFloat(document.getElementById('power').value) || 0;
+        const days = parseFloat(document.getElementById('days').value) || 0;
+        const hours = parseFloat(document.getElementById('hours').value) || 0;
+        const minutes = parseFloat(document.getElementById('minutes').value) || 0;
+        const totalHours = (days * 24) + hours + (minutes / 60);
+        const resultElement = document.getElementById('result').querySelector('p');
+        
         if (power <= 0 || totalHours <= 0) {
-          resultElement.textContent = "総力と時間を正しく入力してください。";
-          return;
+            resultElement.textContent = '総力と時間を正しく入力してください。'; return;
         }
         const powerPerHour = power / totalHours;
         const resultString = powerPerHour.toFixed(1);
-        resultElement.textContent = `1時間あたりの総力: ${formatDecimalString(
-          resultString
-        )}`;
-
+        resultElement.textContent = `1時間あたりの総力: ${formatDecimalString(resultString)}`;
+        
         saveHistory({
-          power: power,
-          days: days,
-          hours: hours,
-          minutes: minutes,
-          result: resultString,
+            power: power, days: days, hours: hours, minutes: minutes, result: resultString
         });
-      }
+    }
 
-      function resetInputs() {
-        document.getElementById("power").value = "";
-        document.getElementById("days").value = "";
-        document.getElementById("hours").value = "";
-        document.getElementById("minutes").value = "";
-        document.getElementById("result").querySelector("p").textContent =
-          "ここに結果が表示されます";
-      }
-
-      function saveHistory(entry) {
-        let history = JSON.parse(localStorage.getItem("calcHistory")) || [];
+    function resetInputs() {
+        document.getElementById('power').value = '';
+        document.getElementById('days').value = '';
+        document.getElementById('hours').value = '';
+        document.getElementById('minutes').value = '';
+        document.getElementById('result').querySelector('p').textContent = 'ここに結果が表示されます';
+    }
+    
+    function saveHistory(entry) {
+        let history = JSON.parse(localStorage.getItem('calcHistory')) || [];
         history.unshift(entry);
         if (history.length > 20) history.pop();
-        localStorage.setItem("calcHistory", JSON.stringify(history));
+        localStorage.setItem('calcHistory', JSON.stringify(history));
         updateHistoryViews();
-      }
-
-      function updateHistoryViews() {
-        const history = JSON.parse(localStorage.getItem("calcHistory")) || [];
+    }
+    
+    function updateHistoryViews() {
+        const history = JSON.parse(localStorage.getItem('calcHistory')) || [];
         populateFullHistoryTable(history);
         populateRecentHistoryTable(history);
-      }
+    }
 
-      function populateFullHistoryTable(history) {
-        const tableBody = document.getElementById("full-history-table-body");
-        tableBody.innerHTML = "";
+    function populateFullHistoryTable(history) {
+        const tableBody = document.getElementById('full-history-table-body');
+        tableBody.innerHTML = '';
         if (history.length === 0) {
-          tableBody.innerHTML =
-            '<tr><td colspan="3" style="text-align:center;">履歴はありません</td></tr>';
-          return;
+            tableBody.innerHTML = '<tr><td colspan="3" style="text-align:center;">履歴はありません</td></tr>';
+            return;
         }
-        let rowsHtml = "";
-        history.forEach((item) => {
-          rowsHtml += `
+        let rowsHtml = '';
+        history.forEach(item => {
+            rowsHtml += `
                 <tr>
                     <td>${item.power.toLocaleString()}</td>
                     <td>${item.days}日 ${item.hours}時間 ${item.minutes}分</td>
@@ -405,24 +258,22 @@
                 </tr>`;
         });
         tableBody.innerHTML = rowsHtml;
-      }
+    }
 
-      // --- 修正点 (6): 動的な高さ計算を削除し、全件表示するロジックに変更 ---
-      function populateRecentHistoryTable(history) {
-        const tableElement = document.getElementById("recent-history-table");
-        const tableBody = document.getElementById("recent-history-table-body");
-        tableBody.innerHTML = "";
+    function populateRecentHistoryTable(history) {
+        const tableElement = document.getElementById('recent-history-table');
+        const tableBody = document.getElementById('recent-history-table-body');
+        tableBody.innerHTML = '';
 
         if (history.length === 0) {
-          tableElement.classList.add("hidden");
-          return;
+            tableElement.classList.add('hidden');
+            return;
         }
-        tableElement.classList.remove("hidden");
-
-        let rowsHtml = "";
-        // CSSでスクロールさせるので、JSでは件数制限せず全件書き出す
-        history.forEach((item) => {
-          rowsHtml += `
+        tableElement.classList.remove('hidden');
+        
+        let rowsHtml = '';
+        history.forEach(item => {
+            rowsHtml += `
                 <tr>
                     <td>${item.power.toLocaleString()}</td>
                     <td>${item.days}日 ${item.hours}h ${item.minutes}m</td>
@@ -430,12 +281,12 @@
                 </tr>`;
         });
         tableBody.innerHTML = rowsHtml;
-      }
+    }
 
-      function clearHistory() {
-        localStorage.removeItem("calcHistory");
+    function clearHistory() {
+        localStorage.removeItem('calcHistory');
         updateHistoryViews();
-      }
-    </script>
-  </body>
+    }
+</script>
+</body>
 </html>
