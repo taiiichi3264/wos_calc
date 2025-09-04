@@ -187,13 +187,11 @@
         width: 100%;
         border-collapse: collapse;
       }
-      /* --- 修正点 (1): 表の文字をすべて右揃えに --- */
       .history-table th,
       .history-table td {
         padding: 8px;
         border-bottom: 1px solid #ddd;
-        text-align: right; /* すべて右揃えに変更 */
-        white-space: nowrap;
+        text-align: right;
       }
       .history-table th {
         background-color: #f8f9fa;
@@ -204,6 +202,8 @@
       }
       .history-table td {
         font-size: 0.85em;
+        font-variant-numeric: tabular-nums;
+        white-space: pre;
       }
       .recent-history-container {
         margin-top: 12px;
@@ -317,6 +317,14 @@
         return `${integerPart}.${parts[1]}`;
       }
 
+      // --- 修正点: hとmを0埋めするように変更 ---
+      function formatTime(days, hours, minutes) {
+        const d = String(days); // dはそのまま
+        const h = String(hours).padStart(2, "0"); // hは0埋め
+        const m = String(minutes).padStart(2, "0"); // mは0埋め
+        return `${d}d ${h}h ${m}m`;
+      }
+
       function showTab(tabName) {
         document.getElementById("content-calc").classList.add("hidden");
         document.getElementById("content-history").classList.add("hidden");
@@ -357,7 +365,6 @@
           result: resultString,
         });
 
-        // --- 修正点 (2): 直近の履歴を一番上にスクロール ---
         const recentHistoryScroller = document.querySelector(
           "#content-calc .table-container"
         );
@@ -402,7 +409,7 @@
           rowsHtml += `
                 <tr>
                     <td>${item.power.toLocaleString()}</td>
-                    <td>${item.days}日 ${item.hours}時間 ${item.minutes}分</td>
+                    <td>${formatTime(item.days, item.hours, item.minutes)}</td>
                     <td>${formatDecimalString(item.result)}</td>
                 </tr>`;
         });
@@ -425,7 +432,7 @@
           rowsHtml += `
                 <tr>
                     <td>${item.power.toLocaleString()}</td>
-                    <td>${item.days}日 ${item.hours}h ${item.minutes}m</td>
+                    <td>${formatTime(item.days, item.hours, item.minutes)}</td>
                     <td>${formatDecimalString(item.result)}</td>
                 </tr>`;
         });
