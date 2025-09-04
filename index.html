@@ -317,12 +317,11 @@
         return `${integerPart}.${parts[1]}`;
       }
 
-      // --- 修正点: hとmを0埋めするように変更 ---
+      // --- 修正点: 時間の表記を「d hh:mm」形式に変更 ---
       function formatTime(days, hours, minutes) {
-        const d = String(days); // dはそのまま
-        const h = String(hours).padStart(2, "0"); // hは0埋め
-        const m = String(minutes).padStart(2, "0"); // mは0埋め
-        return `${d}d ${h}h ${m}m`;
+        const h = String(hours).padStart(2, "0");
+        const m = String(minutes).padStart(2, "0");
+        return `${days}d ${h}:${m}`;
       }
 
       function showTab(tabName) {
