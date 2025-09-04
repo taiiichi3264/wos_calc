@@ -5,14 +5,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>1時間あたりの総力計算</title>
     <style>
+      /* --- 修正点 (1): 画面全体のスクロールを無効化 --- */
+      html,
       body {
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-          "Helvetica Neue", Arial, sans-serif;
-        background-color: #f0f2f5;
-        color: #333;
+        height: 100%;
         margin: 0;
-        padding: 15px;
+        padding: 0;
+        overflow: hidden; /* ページ全体のスクロールを禁止 */
       }
+      body {
+        padding: 15px;
+        box-sizing: border-box; /* paddingを含めて高さを100%に */
+      }
+      /* --- 修正点 (2): アプリの高さを画面いっぱいに固定 --- */
       .container {
         max-width: 400px;
         margin: 0 auto;
@@ -20,29 +25,44 @@
         border-radius: 12px;
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         overflow: hidden;
+        height: 100%; /* 画面の高さに合わせる */
+        display: flex; /* Flexboxレイアウトに変更 */
+        flex-direction: column; /* 縦方向に要素を並べる */
       }
       .tabs {
+        flex-shrink: 0; /* タブは縮まない */
         display: flex;
-        background-color: #e9ecef;
+        border-bottom: 1px solid #ddd;
+        background-color: #f0f2f5;
+        padding: 0 5px;
       }
       .tab-button {
         width: 50%;
         padding: 12px;
-        border: none;
-        background-color: transparent;
+        border: 1px solid transparent;
+        border-bottom: none;
+        border-radius: 6px 6px 0 0;
+        background-color: #f0f2f5;
+        color: #6c757d;
         font-size: 1em;
         font-weight: 600;
-        color: #6c757d;
-        cursor: pointer;
         text-align: center;
-        border-bottom: 3px solid transparent;
+        cursor: pointer;
+        margin-bottom: -1px;
+        transition: background-color 0.2s, color 0.2s;
       }
       .tab-button.active {
         color: #007bff;
-        border-bottom: 3px solid #007bff;
+        background-color: #ffffff;
+        border-color: #ddd #ddd #ffffff;
       }
+      /* --- 修正点 (3): コンテンツエリアが残りの高さいっぱいを占めるように --- */
       .tab-content {
         padding: 20px;
+        flex-grow: 1; /* 残りのスペースをすべて使用 */
+        display: flex;
+        flex-direction: column;
+        min-height: 0; /* Flexbox利用時のオーバーフロー防止 */
       }
       .hidden {
         display: none;
@@ -107,14 +127,8 @@
       .calc-button {
         background-color: #007bff;
       }
-      .calc-button:hover {
-        background-color: #0056b3;
-      }
       .reset-button {
         background-color: #6c757d;
-      }
-      .reset-button:hover {
-        background-color: #5a6268;
       }
       #result {
         margin-top: 15px;
@@ -129,11 +143,13 @@
         font-weight: bold;
         color: #1c1e21;
       }
+
       .history-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
         margin-bottom: 15px;
+        flex-shrink: 0;
       }
       .history-header h1 {
         margin: 0;
@@ -150,9 +166,13 @@
         padding: 5px;
         flex-shrink: 0;
       }
+
+      /* --- 修正点 (4): テーブルコンテナがスクロールを担当 --- */
       .table-container {
-        overflow-x: auto;
+        overflow: auto; /* 縦横のスクロールを必要に応じて許可 */
         -webkit-overflow-scrolling: touch;
+        flex-grow: 1; /* 残りのスペースを埋める */
+        min-height: 0; /* Flexbox利用時のオーバーフロー防止 */
       }
       .history-table {
         width: 100%;
@@ -169,6 +189,8 @@
         background-color: #f8f9fa;
         font-weight: 600;
         font-size: 0.9em;
+        position: sticky; /* スクロール時にヘッダーを固定 */
+        top: 0;
       }
       .history-table td {
         font-size: 0.9em;
@@ -183,16 +205,23 @@
         text-align: right;
         padding-right: 10px;
       }
+
+      /* --- 修正点 (5): 計算機タブ内の履歴エリアもFlexboxで高さを制御 --- */
       .recent-history-container {
         margin-top: 15px;
         padding-top: 15px;
         border-top: 1px solid #eee;
+        flex-grow: 1; /* 残りのスペースを埋める */
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
       }
       .recent-history-container h3 {
         margin: 0 0 10px 0;
         font-size: 1em;
         font-weight: 600;
         color: #333;
+        flex-shrink: 0;
       }
     </style>
   </head>
@@ -212,34 +241,35 @@
       </div>
 
       <div id="content-calc" class="tab-content">
-        <h1>1時間あたりの総力計算</h1>
-        <div class="input-group">
-          <label for="power">獲得総力</label>
-          <input type="number" id="power" placeholder="例: 10000" />
-        </div>
-
-        <label>所用時間</label>
-        <div class="time-input-container">
-          <div class="time-input-group">
-            <label for="days">日</label
-            ><input type="number" id="days" placeholder="1" />
+        <div>
+          <h1>1時間あたりの総力計算</h1>
+          <div class="input-group">
+            <label for="power">獲得総力</label>
+            <input type="number" id="power" placeholder="例: 10000" />
           </div>
-          <div class="time-input-group">
-            <label for="hours">時間</label
-            ><input type="number" id="hours" placeholder="10" />
+          <label>所用時間</label>
+          <div class="time-input-container">
+            <div class="time-input-group">
+              <label for="days">日</label
+              ><input type="number" id="days" placeholder="1" />
+            </div>
+            <div class="time-input-group">
+              <label for="hours">時間</label
+              ><input type="number" id="hours" placeholder="10" />
+            </div>
+            <div class="time-input-group">
+              <label for="minutes">分</label
+              ><input type="number" id="minutes" placeholder="30" />
+            </div>
           </div>
-          <div class="time-input-group">
-            <label for="minutes">分</label
-            ><input type="number" id="minutes" placeholder="30" />
+          <div class="button-group">
+            <button class="reset-button" onclick="resetInputs()">
+              リセット
+            </button>
+            <button class="calc-button" onclick="calculate()">計算する</button>
           </div>
+          <div id="result"><p>ここに結果が表示されます</p></div>
         </div>
-
-        <div class="button-group">
-          <button class="reset-button" onclick="resetInputs()">リセット</button>
-          <button class="calc-button" onclick="calculate()">計算する</button>
-        </div>
-        <div id="result"><p>ここに結果が表示されます</p></div>
-
         <div class="recent-history-container">
           <h3>直近の履歴</h3>
           <div class="table-container">
@@ -257,7 +287,7 @@
         </div>
       </div>
 
-      <div id="content-history" class="tab-content hidden">
+      <div id="content-history" class="tab-content">
         <div class="history-header">
           <h1>計算履歴</h1>
           <button class="clear-history" onclick="clearHistory()">
@@ -284,13 +314,8 @@
         updateHistoryViews();
         showTab("calc");
       };
-      window.addEventListener("resize", updateHistoryViews);
+      // 修正: リサイズイベントは不要になったため削除
 
-      /**
-       * --- 修正点 (3): 小数点表示を整形する共通関数 ---
-       * @param {string} numStr - ".toFixed(1)"で整形済みの数値文字列
-       * @returns {string} - 整数部分に桁区切りを追加した文字列
-       */
       function formatDecimalString(numStr) {
         if (!numStr) return "";
         const parts = numStr.split(".");
@@ -325,8 +350,6 @@
           return;
         }
         const powerPerHour = power / totalHours;
-
-        // --- 修正点 (1): toFixed(1)に変更 ---
         const resultString = powerPerHour.toFixed(1);
         resultElement.textContent = `1時間あたりの総力: ${formatDecimalString(
           resultString
@@ -374,7 +397,6 @@
         }
         let rowsHtml = "";
         history.forEach((item) => {
-          // --- 修正点 (2): 整形関数を使用 ---
           rowsHtml += `
                 <tr>
                     <td>${item.power.toLocaleString()}</td>
@@ -385,6 +407,7 @@
         tableBody.innerHTML = rowsHtml;
       }
 
+      // --- 修正点 (6): 動的な高さ計算を削除し、全件表示するロジックに変更 ---
       function populateRecentHistoryTable(history) {
         const tableElement = document.getElementById("recent-history-table");
         const tableBody = document.getElementById("recent-history-table-body");
@@ -396,22 +419,9 @@
         }
         tableElement.classList.remove("hidden");
 
-        const tempTr = document.createElement("tr");
-        tempTr.style.visibility = "hidden";
-        tempTr.innerHTML = "<td>temp</td><td>temp</td><td>temp</td>";
-        tableBody.appendChild(tempTr);
-        const itemHeight = tempTr.offsetHeight > 0 ? tempTr.offsetHeight : 39;
-        tableBody.removeChild(tempTr);
-
-        const containerTop = tableElement.getBoundingClientRect().top;
-        const availableHeight = window.innerHeight - containerTop - 20;
-        const maxItems = Math.floor(availableHeight / itemHeight);
-
-        const itemsToShow = history.slice(0, maxItems);
-
         let rowsHtml = "";
-        itemsToShow.forEach((item) => {
-          // --- 修正点 (2): 整形関数を使用 ---
+        // CSSでスクロールさせるので、JSでは件数制限せず全件書き出す
+        history.forEach((item) => {
           rowsHtml += `
                 <tr>
                     <td>${item.power.toLocaleString()}</td>
